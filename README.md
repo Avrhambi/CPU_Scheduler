@@ -7,21 +7,24 @@
 ```mermaid
 graph TD
     CLI[CLI / Input Parser] --> Engine[Simulation Engine]
-    Engine --> Scheduler[Scheduler Algorithms]
-    Scheduler --> FCFS[FCFS]
-    Scheduler --> SJF[SJF]
-    Scheduler --> Prio[Priority]
-    Scheduler --> RR[Round Robin]
     
-    Scheduler --> Q[Ready Queue / Job Pool]
-    Scheduler --> Dispatcher[Signal Dispatcher]
+    Engine --> Schedulers
     
-    Dispatcher -- SIGCONT --> Proc[Running Child Process]
+    subgraph Schedulers [Scheduling Algorithms]
+        FCFS
+        SJF
+        Prio[Priority]
+        RR[Round Robin]
+    end
+    
+    Schedulers --> Q[(Job Pool / Ready Queue)]
+    Schedulers --> Dispatcher[Signal Dispatcher]
+    Schedulers --> Gantt[Gantt Visualizer]
+    Schedulers --> Dash[Live ANSI Dashboard]
+    
+    Dispatcher -- SIGCONT --> Proc((Running Child Process))
     Dispatcher -- SIGSTOP --> Proc
-    
-    Dispatcher --> Dash[Live ANSI Dashboard]
-    Scheduler --> Dash
-    Scheduler --> Gantt[Gantt Visualizer]
+    Dispatcher --> Dash
 ```
 
 ### Clock Tick Lifecycle
