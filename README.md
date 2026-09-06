@@ -6,25 +6,24 @@
 
 ```mermaid
 graph TD
-    CLI[CLI / Input Parser] --> Engine[Simulation Engine]
-    
-    Engine --> Schedulers
-    
-    subgraph Schedulers [Scheduling Algorithms]
+    CLI["CLI Parser / Orchestrator (main.c)"] --> Schedulers
+    CLI -- "SIGTERM sweep after each run" --> Proc
+
+    subgraph Schedulers ["Scheduling Algorithms (scheduler.c)"]
         FCFS
         SJF
         Prio[Priority]
         RR[Round Robin]
     end
-    
-    Schedulers --> Q[(Job Pool / Ready Queue)]
-    Schedulers --> Dispatcher[Signal Dispatcher]
-    Schedulers --> Gantt[Gantt Visualizer]
-    Schedulers --> Dash[Live ANSI Dashboard]
-    
-    Dispatcher -- SIGCONT --> Proc((Running Child Process))
-    Dispatcher -- SIGSTOP --> Proc
-    Dispatcher --> Dash
+
+    Schedulers <--> Q[("Job Pool + RR Ready Queue (state.c)")]
+    Schedulers -- "per tick: simulate_execution / simulate_idle" --> Dispatcher["Signal Dispatcher (dispatcher.c)"]
+    Schedulers -- "print_gantt at end of run" --> Gantt["Gantt Visualizer (ui.c)"]
+
+    Dispatcher -- "fork + SIGCONT / SIGSTOP" --> Proc(("Running Child Process (process.c)"))
+    Dispatcher -- "SIGALRM 1s clock tick" --> Dispatcher
+    Dispatcher -- "writes gantt_history" --> Gantt
+    Dispatcher -- "print_dashboard" --> Dash["Live ANSI Dashboard (ui.c)"]
 ```
 
 ### Clock Tick Lifecycle
