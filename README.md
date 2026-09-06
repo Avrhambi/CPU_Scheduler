@@ -129,10 +129,9 @@ make clean && make
 All four algorithms run in sequence in a single invocation; each finishes with its
 average waiting time and Gantt chart.
 
-## Testing & CI
+## Important Notes
 
-There is **no automated test suite or CI pipeline** in this repository yet. The
-build is the only mechanical gate:
+The build is the only mechanical gate:
 
 ```bash
 make clean && make   # must compile clean under -Wall -Wextra
