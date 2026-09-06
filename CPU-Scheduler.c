@@ -139,13 +139,17 @@ void generate_demo_processes() {
     printf(">> Generated Demo Processes\n");
     printf("──────────────────────────────────────────────\n");
     printf("%-10s %-15s %-15s %-15s\n", "Process", "Arrival Time", "Burst Time", "Priority");
+    int total_burst_time = 0;
     for (int i = 0; i < process_counter; i++) {
         printf("%-10s %-15d %-15d %-15d\n", 
                processes[i].name, 
                processes[i].arrival_time, 
                processes[i].burst_time, 
                processes[i].priority);
+        total_burst_time += processes[i].burst_time;
     }
+    printf("──────────────────────────────────────────────\n");
+    printf("%-26s %-15d\n", "Total Burst Time:", total_burst_time);
     printf("══════════════════════════════════════════════\n");
     wait_for_step();
 }
