@@ -155,6 +155,7 @@ pid_t create_process() {
 
 void terminate_process(pid_t pid) {
     if (pid > 0) {
+        kill(pid, SIGCONT);
         kill(pid, SIGTERM);
         int status;
         waitpid(pid, &status, 0);
@@ -169,6 +170,8 @@ void simulate_execution(int process_idx, int duration) {
     
     if (p->pid == -1) {
         p->pid = create_process();
+    } else {
+        kill(p->pid, SIGCONT);
     }
     
     
@@ -183,8 +186,7 @@ void simulate_execution(int process_idx, int duration) {
     }
     
     unblock_signals(&oldset);
-    terminate_process(p->pid);
-    p->pid = -1;
+    kill(p->pid, SIGSTOP);
 }
 
 void fcfs_scheduler() {
@@ -536,8 +538,8 @@ void round_rubin_scheduler() {
         
         for (int proc = 0; proc < process_counter; proc++) {
             if (!process_in_queue[proc] && 
-                processes[proc].arrival_time < current_time && 
-                processes[proc].arrival_time >= (current_time - time_slice)) {
+                processes[proc].arrival_time <= current_time && 
+                processes[proc].arrival_time > (current_time - time_slice)) {
                 ready_queue.data[ready_queue.end] = proc;
                 ready_queue.end = (ready_queue.end + 1) % (MAX_PROCESSES_NUM * 2);
                 ready_queue.size++;
@@ -557,23 +559,18 @@ void round_rubin_scheduler() {
             current_process->completed = 1;
             completed_processes++;
         }
-        
-        
-        for (int proc = 0; proc < process_counter; proc++) {
-            if (!process_in_queue[proc] && processes[proc].arrival_time == current_time) {
-                ready_queue.data[ready_queue.end] = proc;
-                ready_queue.end = (ready_queue.end + 1) % (MAX_PROCESSES_NUM * 2);
-                ready_queue.size++;
-                process_in_queue[proc] = 1;
-            }
-        }
     }
     
     printf("\n──────────────────────────────────────────────\n");
     printf(">> Engine Status  : Completed\n");
     printf(">> Summary        :\n");
-    printf("   └─ Total Turnaround Time : %d time units\n", current_time);
-    printf("\n>> End of Report\n");
+
+    double total_waiting_time = 0;
+    for (int i = 0; i < process_counter; i++) {
+        total_waiting_time += processes[i].waiting_time;
+    }
+    printf("   └─ Average Waiting Time : %.2f time units\n", total_waiting_time / process_counter);
+    printf(">> End of Report\n");
     printf("══════════════════════════════════════════════\n\n");
 }
 
@@ -614,7 +611,7 @@ int main(int argc, char *argv[]) {
     int quantum = atoi(argv[2]);
     
     if (quantum <= 0) {
-        fprintf(stderr, "Error: Quantum must be a positive integer.\\n");
+        fprintf(stderr, "Error: Quantum must be a positive integer.\n");
         return EXIT_FAILURE;
     }
     
