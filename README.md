@@ -1,43 +1,68 @@
 # OS Process Scheduler & Signal Management Engine
 
-## Elevator Pitch
-Welcome to the **OS Process Scheduler & Signal Management Engine**! 🚀 
-This project is an advanced, full-featured simulation of a CPU scheduler, bringing the intricate world of Operating Systems to life right in your terminal. We've built an engine that perfectly balances rigorous low-level systems programming—like process state management and POSIX signal handling—with modern user experience enhancements. Watch algorithms execute in real-time and discover the power of process preemption!
+> A POSIX-compliant CPU scheduler simulation engine demonstrating robust process state management, preemption via signals, and interactive Gantt visualizations.
 
-## 🌟 Key Features
+## System Architecture & Flow
 
-### Live Dashboard
-Experience the scheduling process interactively with our new **Live Dashboard**. 
-By running the engine in `--step` mode, you'll see a dynamically updating interface that refreshes on every clock tick. It pinpoints the current time, highlights the `[RUNNING]` process, and gives you real-time visibility into the `[READY QUEUE]`.
-
-### Gantt Chart Visualizations
-At the end of every simulation cycle, the engine prints a detailed ASCII-based **Gantt Chart** timeline (`P1: [████    ]`). This visual representation demonstrates exactly how CPU time was distributed and shared across all active processes.
-
-### 🧠 Implemented Algorithms
-The engine is equipped with classic CPU scheduling algorithms:
-- **First-Come, First-Served (FCFS)**
-- **Shortest Job First (SJF)**
-- **Priority Scheduling**
-- **Round Robin (RR)**
-
-## 🛠️ Technical Challenges & Solutions
-
-Developing a robust simulation came with complex technical hurdles, primarily involving concurrency and state management:
-
-- **Handling Async-Signal-Safety:** Ensuring stability when mixing standard C functions with POSIX signal handlers was paramount. We successfully established rigorous signal masking protocols (`sigprocmask`, `sigsuspend`) to prevent deadlocks and race conditions.
-- **Process Preemption using `SIGSTOP`/`SIGCONT`:** Rather than naively killing and recreating child processes during context switches, we implemented true Unix preemption. Processes are intelligently paused and resumed using POSIX signals, perfectly replicating an OS context switch.
-- **Memory Bounds Management:** Using static allocations limits overhead and completely eliminates dynamic memory leaks. To prevent buffer over-reads in large simulations, we implemented tight bounds-checking dynamically across execution logs and the visual Gantt timeline.
-
-## 🚀 Getting Started
-
-Compile the project utilizing the provided `Makefile` or natively compile using `gcc`:
-```bash
-make
-# OR
-gcc -Wall -Wextra -g CPU-Scheduler.c -o CPU-Scheduler
+```mermaid
+graph TD
+    CLI[CLI / Input Parser] --> Engine[Simulation Engine]
+    Engine --> Dispatcher[Signal Dispatcher]
+    Engine --> Q[Ready Queue]
+    Q --> Scheduler[Scheduler Algorithms]
+    Scheduler --> FCFS[FCFS]
+    Scheduler --> SJF[SJF]
+    Scheduler --> Prio[Priority]
+    Scheduler --> RR[Round Robin]
+    Dispatcher -- SIGCONT --> Proc[Running Child Process]
+    Dispatcher -- SIGSTOP --> Proc
+    Engine --> Dash[Live ANSI Dashboard]
+    Engine --> Gantt[Gantt Visualizer]
 ```
 
-Run in demo mode to autogenerate tasks:
+### Clock Tick Lifecycle
+1. **Queue Evaluation:** The engine evaluates the current global clock against process arrival times to dynamically update the Ready Queue.
+2. **Process Dispatch:** The selected scheduling algorithm identifies the next process to execute, either forking it (if entirely new) or dispatching a `SIGCONT` signal (if paused).
+3. **Dashboard Render:** The Live Dashboard clears the terminal using ANSI escapes, painting the `[RUNNING]` process and the `[READY QUEUE]` state in real-time.
+4. **Execution & Preemption:** The clock advances, Gantt history is recorded, and if an interrupt occurs (e.g., a Round Robin time quantum expires), a `SIGSTOP` signal safely pauses the child process to yield the CPU.
+
+## Tech Stack & Engineering Decisions
+
+| Layer/Component | Technology | Rationale & Trade-offs |
+|-----------------|------------|-----------------------|
+| **Core Engine** | C (C99) | Grants absolute low-level control over memory, POSIX syscalls, and process hierarchies. |
+| **Context Switching** | POSIX Signals (`SIGSTOP`/`SIGCONT`) | Replicates true OS preemption natively rather than mocking concurrency with threads. *Trade-off:* Requires rigorous signal masking logic to prevent deadlocks. |
+| **UI/Visuals** | ANSI Escape Codes | Provides lightweight, dependency-free in-place updating for the Live Dashboard without the bloat of `ncurses`. *Trade-off:* Assumes a modern, ANSI-compliant terminal emulator. |
+| **Memory Management**| Static Pre-Allocation | Relies on statically allocated state structures rather than dynamic `malloc`/`free`. Guarantees a zero-memory-leak profile, critical for daemon-like simulations. |
+
+## Resilience & Error Handling Patterns
+
+Building a stable OS-level simulation requires deep resilience against edge cases:
+
+- **POSIX Signal Masking:** Robust `sigprocmask` and `sigsuspend` synchronization patterns ensure async-signal-safety, guaranteeing the engine does not race or deadlock during asynchronous `SIGALRM` interruptions.
+- **Strict Bounds Checking:** The Gantt chart visualizer dynamically enforces array bounds (`t < 10000`) preventing devastating buffer over-reads during abnormally long scheduling simulations.
+- **EOF Graceful Degradation:** Event loops processing interactive standard input (e.g., `--step` mode) strictly validate for `EOF` streams (e.g., `Ctrl+D`), preventing fatal infinite CPU spins.
+- **Orphan Process Cleanup:** Defensive process sweeping (via `SIGTERM`) executes strictly after each algorithm finishes, ensuring no zombie or rogue processes persist in the environment.
+
+## Project Layout
+
+```text
+.
+├── CPU-Scheduler.c     # Core simulation engine, signal dispatch, and scheduling algorithms
+├── Makefile            # Standard GNU Make build definitions
+└── README.md           # Architectural documentation and setup instructions
+```
+
+## Local Setup & Quickstart
+
 ```bash
+# Clone the repository
+git clone <repository_url>
+cd CPU_Scheduler
+
+# Build the executable
+make
+
+# Run the interactive dashboard in demo mode
 ./CPU-Scheduler --demo --step
 ```
