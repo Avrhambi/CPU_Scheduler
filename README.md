@@ -55,6 +55,11 @@ Building a stable OS-level simulation requires deep resilience against edge case
 
 ## Local Setup & Quickstart
 
+> [!IMPORTANT]
+> **OS Compatibility:** Because this engine relies on native POSIX system calls and signals (`fork`, `execve`, `SIGSTOP`, `SIGCONT`), it must be run in a UNIX-like environment. 
+> - **Linux / macOS:** Works natively.
+> - **Windows:** Must be run using **Windows Subsystem for Linux (WSL)**. It will not compile or run in standard Windows CMD or PowerShell.
+
 ```bash
 # Clone the repository
 git clone https://github.com/Avrhambi/CPU_Scheduler
