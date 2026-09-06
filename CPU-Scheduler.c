@@ -204,7 +204,8 @@ void wait_for_step() {
     if (step_mode) {
         printf("\nPress ENTER to continue...");
         fflush(stdout);
-        while(getchar() != '\n');
+        int c;
+        while((c = getchar()) != '\n' && c != EOF);
     } else {
         alarm_triggered = 0;
         alarm(1);
@@ -249,7 +250,7 @@ void print_gantt(int total_time) {
     printf("\n>> Gantt Chart:\n");
     for (int i = 0; i < process_counter; i++) {
         printf("   %-10s: [", processes[i].name);
-        for (int t = 0; t < total_time; t++) {
+        for (int t = 0; t < total_time && t < 10000; t++) {
             if (gantt_history[t] == i) printf("█");
             else printf(" ");
         }
@@ -323,7 +324,7 @@ void fcfs_scheduler() {
     print_gantt(curr_time);
     printf(">> End of Report\n");
     printf("══════════════════════════════════════════════\n\n");
-    if(step_mode) { printf("Press ENTER to continue..."); while(getchar() != '\n'); }
+    if(step_mode) { printf("Press ENTER to continue..."); int c; while((c = getchar()) != '\n' && c != EOF); }
 }
 
 void sjf_scheduler() {
@@ -396,7 +397,7 @@ void sjf_scheduler() {
     print_gantt(curr_time);
     printf(">> End of Report\n");
     printf("══════════════════════════════════════════════\n\n");
-    if(step_mode) { printf("Press ENTER to continue..."); while(getchar() != '\n'); }
+    if(step_mode) { printf("Press ENTER to continue..."); int c; while((c = getchar()) != '\n' && c != EOF); }
 }
 
 void priority_scheduler() {
@@ -469,7 +470,7 @@ void priority_scheduler() {
     print_gantt(curr_time);
     printf(">> End of Report\n");
     printf("══════════════════════════════════════════════\n\n");
-    if(step_mode) { printf("Press ENTER to continue..."); while(getchar() != '\n'); }
+    if(step_mode) { printf("Press ENTER to continue..."); int c; while((c = getchar()) != '\n' && c != EOF); }
 }
 
 void round_rubin_scheduler() {
@@ -587,7 +588,7 @@ void round_rubin_scheduler() {
     print_gantt(current_time);
     printf(">> End of Report\n");
     printf("══════════════════════════════════════════════\n\n");
-    if(step_mode) { printf("Press ENTER to continue..."); while(getchar() != '\n'); }
+    if(step_mode) { printf("Press ENTER to continue..."); int c; while((c = getchar()) != '\n' && c != EOF); }
 }
 
 void processes_cleaning() {
