@@ -38,6 +38,7 @@ volatile sig_atomic_t alarm_triggered = 0;
 int demo_mode = 0;
 int step_mode = 0;
 int gantt_history[10000];
+void wait_for_step();
 
 void cpu_alarm_handler(int signum) {
     alarm_triggered = 1;
@@ -133,6 +134,20 @@ void generate_demo_processes() {
         processes[i].turnaround_time = 0;
         processes[i].completed = 0;
     }
+
+    printf("\n══════════════════════════════════════════════\n");
+    printf(">> Generated Demo Processes\n");
+    printf("──────────────────────────────────────────────\n");
+    printf("%-10s %-15s %-15s %-15s\n", "Process", "Arrival Time", "Burst Time", "Priority");
+    for (int i = 0; i < process_counter; i++) {
+        printf("%-10s %-15d %-15d %-15d\n", 
+               processes[i].name, 
+               processes[i].arrival_time, 
+               processes[i].burst_time, 
+               processes[i].priority);
+    }
+    printf("══════════════════════════════════════════════\n");
+    wait_for_step();
 }
 
 void reset_processes() {
