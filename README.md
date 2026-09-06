@@ -7,17 +7,21 @@
 ```mermaid
 graph TD
     CLI[CLI / Input Parser] --> Engine[Simulation Engine]
-    Engine --> Dispatcher[Signal Dispatcher]
-    Engine --> Q[Ready Queue]
-    Q --> Scheduler[Scheduler Algorithms]
+    Engine --> Scheduler[Scheduler Algorithms]
     Scheduler --> FCFS[FCFS]
     Scheduler --> SJF[SJF]
     Scheduler --> Prio[Priority]
     Scheduler --> RR[Round Robin]
+    
+    Scheduler --> Q[Ready Queue / Job Pool]
+    Scheduler --> Dispatcher[Signal Dispatcher]
+    
     Dispatcher -- SIGCONT --> Proc[Running Child Process]
     Dispatcher -- SIGSTOP --> Proc
-    Engine --> Dash[Live ANSI Dashboard]
-    Engine --> Gantt[Gantt Visualizer]
+    
+    Dispatcher --> Dash[Live ANSI Dashboard]
+    Scheduler --> Dash
+    Scheduler --> Gantt[Gantt Visualizer]
 ```
 
 ### Clock Tick Lifecycle
@@ -44,11 +48,40 @@ Building a stable OS-level simulation requires deep resilience against edge case
 - **EOF Graceful Degradation:** Event loops processing interactive standard input (e.g., `--step` mode) strictly validate for `EOF` streams (e.g., `Ctrl+D`), preventing fatal infinite CPU spins.
 - **Orphan Process Cleanup:** Defensive process sweeping (via `SIGTERM`) executes strictly after each algorithm finishes, ensuring no zombie or rogue processes persist in the environment.
 
-## Project Layout
+## Project Layout & Modular Architecture
+
+The codebase has been structured according to clean code principles, breaking down the engine into strictly isolated components to separate concerns and ensure maintainability:
+
+### Domain Models & State
+* **`include/types.h`**: Defines the core data structures (e.g., the `Process` struct) and simulation constants.
+* **`state.c` & `state.h`**: Centralizes the simulation state (the job pool, global clock, mode flags). This allows modules to interact safely without tight coupling or scattered global variables.
+
+### Core Modules
+* **`process.c` & `process.h`**: Handles process lifecycle management, including CSV parsing, demo process generation, and UNIX `fork`/termination primitives.
+* **`dispatcher.c` & `dispatcher.h`**: Encapsulates OS-level signal handling (`SIGSTOP`, `SIGCONT`, alarms) and the logic for dispatching CPU time to running processes.
+* **`scheduler.c` & `scheduler.h`**: Contains strictly the scheduling algorithmic logic (FCFS, SJF, Priority, and Round Robin).
+* **`ui.c` & `ui.h`**: Isolates all ANSI terminal rendering logic for the Live Dashboard and the Gantt Chart visualization.
+
+### Entrypoint & Build
+* **`main.c`**: Acts purely as the CLI input parser and high-level orchestrator.
+* **`Makefile`**: Automates the compilation and linking of the modular source files.
 
 ```text
 .
-├── CPU-Scheduler.c     # Core simulation engine, signal dispatch, and scheduling algorithms
+├── include/
+│   ├── dispatcher.h    # Signal handling & dispatch definitions
+│   ├── process.h       # Process definitions and lifecycle
+│   ├── scheduler.h     # Scheduling algorithms definitions
+│   ├── state.h         # Global simulation state management
+│   ├── types.h         # Core data types 
+│   └── ui.h            # ANSI dashboard and Gantt definitions
+├── src/
+│   ├── dispatcher.c    # Signal control and process preemption
+│   ├── main.c          # CLI parsing and orchestration
+│   ├── process.c       # Process generation and termination
+│   ├── scheduler.c     # FCFS, SJF, Priority, and Round Robin logic
+│   ├── state.c         # Centralized simulation state memory
+│   └── ui.c            # Dashboard and Gantt rendering logic
 ├── Makefile            # Standard GNU Make build definitions
 └── README.md           # Architectural documentation and setup instructions
 ```

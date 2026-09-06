@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -I.
 
 TARGET = CPU-Scheduler
-SRCS = CPU-Scheduler.c
+SRCS = src/main.c src/state.c src/process.c src/dispatcher.c src/ui.c src/scheduler.c
 OBJS = $(SRCS:.c=.o)
 
 all: $(TARGET)
