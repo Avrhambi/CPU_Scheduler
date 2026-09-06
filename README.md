@@ -57,7 +57,7 @@ Building a stable OS-level simulation requires deep resilience against edge case
 
 ```bash
 # Clone the repository
-git clone <repository_url>
+git clone https://github.com/Avrhambi/CPU_Scheduler
 cd CPU_Scheduler
 
 # Build the executable
