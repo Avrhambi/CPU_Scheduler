@@ -4,6 +4,7 @@
 > with `SIGSTOP` / `SIGCONT`, so context switching is performed by the kernel rather
 > than mocked with threads. Renders a live ANSI dashboard and a per-process Gantt
 > chart for FCFS, SJF, Priority, and Round Robin.
+> Originally a OS assignment, part of CS degree at Bar Ilan university;
 
 ## System Architecture & Flow
 
