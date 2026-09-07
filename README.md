@@ -129,16 +129,3 @@ make clean && make
 All four algorithms run in sequence in a single invocation; each finishes with its
 average waiting time and Gantt chart.
 
-## Important Notes
-
-The build is the only mechanical gate:
-
-```bash
-make clean && make   # must compile clean under -Wall -Wextra
-```
-
-Behaviour is currently verified by hand: `--demo --step` to walk a schedule, and
-small CSV fixtures with known optimal orderings to eyeflow the Gantt output and the
-reported average waiting time. A unit harness around the four schedulers (feed a
-fixed process table, assert on `waiting_time` / `turnaround_time`) and a GitHub
-Actions job running the build are the obvious next steps.
